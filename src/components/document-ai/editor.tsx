@@ -11,7 +11,21 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
 import {
   Copy,
   Download,
@@ -37,6 +51,8 @@ export default function Editor({ document: initialDocument }: EditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [document, setDocument] = useState(initialDocument);
+  const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
+  const [pdfMargin, setPdfMargin] = useState(20);
 
   const handleCopyToClipboard = () => {
     if (editorRef.current) {
@@ -77,6 +93,7 @@ export default function Editor({ document: initialDocument }: EditorProps) {
           break;
         }
         case 'PDF': {
+          setIsPdfDialogOpen(false);
           const canvas = await html2canvas(editorRef.current, { 
             scale: 2,
             useCORS: true,
@@ -87,10 +104,10 @@ export default function Editor({ document: initialDocument }: EditorProps) {
           const pdf = new jsPDF({
             orientation: 'p',
             unit: 'px',
-            format: [canvas.width, canvas.height],
+            format: [canvas.width + pdfMargin * 2, canvas.height + pdfMargin * 2],
           });
         
-          pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+          pdf.addImage(imgData, 'PNG', pdfMargin, pdfMargin, canvas.width, canvas.height);
           pdf.save(`${title}.pdf`);
           break;
         }
@@ -148,69 +165,96 @@ export default function Editor({ document: initialDocument }: EditorProps) {
   };
 
   return (
-    <div className="flex-grow flex flex-col w-full">
-      <header className="p-4 border-b bg-card">
-        <div className="flex items-center justify-between">
-          <FormattingToolbar />
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <ImageIcon className="mr-2 h-4 w-4" /> Add Image
-            </Button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleImageUpload}
-              className="hidden"
-              accept="image/*"
-            />
-            <Button variant="outline" onClick={handleCopyToClipboard}>
-              <Copy className="mr-2 h-4 w-4" /> Copy
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button>
-                  <Download className="mr-2 h-4 w-4" /> Export
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleExport('Markdown')}>
-                  <FileText className="mr-2 h-4 w-4" />
-                  <span>Markdown</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('HTML')}>
-                  <FileType className="mr-2 h-4 w-4" />
-                  <span>HTML</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('PDF')}>
-                  <FileDown className="mr-2 h-4 w-4" />
-                  <span>PDF</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('DOCX')}>
-                  <FileCode className="mr-2 h-4 w-4" />
-                  <span>DOCX</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+    <>
+      <div className="flex-grow flex flex-col w-full">
+        <header className="p-4 border-b bg-card">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <FormattingToolbar />
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                size="sm"
+              >
+                <ImageIcon className="mr-2 h-4 w-4" /> Add Image
+              </Button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+                className="hidden"
+                accept="image/*"
+              />
+              <Button variant="outline" onClick={handleCopyToClipboard} size="sm">
+                <Copy className="mr-2 h-4 w-4" /> Copy
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm">
+                    <Download className="mr-2 h-4 w-4" /> Export
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleExport('Markdown')}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    <span>Markdown</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExport('HTML')}>
+                    <FileType className="mr-2 h-4 w-4" />
+                    <span>HTML</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setIsPdfDialogOpen(true)}>
+                    <FileDown className="mr-2 h-4 w-4" />
+                    <span>PDF</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExport('DOCX')}>
+                    <FileCode className="mr-2 h-4 w-4" />
+                    <span>DOCX</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
+        </header>
+        <div className="flex-grow flex justify-center p-4 sm:p-8 bg-muted/40 overflow-y-auto">
+          <Card className="w-full max-w-4xl shadow-lg">
+            <CardContent className="p-8 md:p-12">
+              <div
+                ref={editorRef}
+                className="document-content max-w-none prose dark:prose-invert"
+                dangerouslySetInnerHTML={{ __html: document }}
+                contentEditable={true}
+                suppressContentEditableWarning={true}
+                onInput={(e) => setDocument(e.currentTarget.innerHTML)}
+              />
+            </CardContent>
+          </Card>
         </div>
-      </header>
-      <div className="flex-grow flex justify-center p-4 sm:p-8 bg-muted/40 overflow-y-auto">
-        <Card className="w-full max-w-4xl shadow-lg">
-          <CardContent className="p-8 md:p-12">
-            <div
-              ref={editorRef}
-              className="document-content max-w-none prose dark:prose-invert"
-              dangerouslySetInnerHTML={{ __html: document }}
-              contentEditable={true}
-              suppressContentEditableWarning={true}
-              onInput={(e) => setDocument(e.currentTarget.innerHTML)}
-            />
-          </CardContent>
-        </Card>
       </div>
-    </div>
+      <Dialog open={isPdfDialogOpen} onOpenChange={setIsPdfDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>PDF Export Options</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Label htmlFor="pdf-margin">Margin: {pdfMargin}px</Label>
+            <Slider
+              id="pdf-margin"
+              min={0}
+              max={100}
+              step={5}
+              value={[pdfMargin]}
+              onValueChange={(value) => setPdfMargin(value[0])}
+            />
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={() => handleExport('PDF')}>Export PDF</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
