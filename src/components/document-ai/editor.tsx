@@ -81,8 +81,8 @@ export default function Editor({ document: initialDocument }: EditorProps) {
             scale: 2,
             useCORS: true,
             backgroundColor:
-              editorRef.current.style.backgroundColor === 'rgb(255, 255, 255)' ||
-              editorRef.current.style.backgroundColor === '#ffffff'
+              window.getComputedStyle(editorRef.current).backgroundColor === 'rgb(255, 255, 255)' ||
+              window.getComputedStyle(editorRef.current).backgroundColor === '#ffffff'
                 ? '#ffffff'
                 : '#0f172a',
           });
@@ -222,7 +222,7 @@ export default function Editor({ document: initialDocument }: EditorProps) {
           </div>
         </div>
       </header>
-      <div className="flex-grow flex justify-center p-8 bg-muted/40">
+      <div className="flex-grow flex justify-center p-4 sm:p-8 bg-muted/40 overflow-y-auto">
         <Card className="w-full max-w-4xl shadow-lg">
           <CardContent className="p-8 md:p-12">
             <div

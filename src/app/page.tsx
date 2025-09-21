@@ -65,7 +65,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header onLogoClick={handleBackToHome} />
-      <main className="flex-grow flex items-stretch">
+      <main className="flex-grow flex flex-col">
         {!doc && !isLoading && (
           <div className="flex-grow container mx-auto px-4 py-8 md:py-12 flex items-start justify-center">
             <PromptForm onGenerate={handleGenerate} />

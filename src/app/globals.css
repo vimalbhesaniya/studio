@@ -118,4 +118,7 @@
   .document-content th {
     @apply bg-muted;
   }
+  .document-content img {
+    @apply max-w-full h-auto;
+  }
 }
