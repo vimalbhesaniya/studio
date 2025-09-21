@@ -80,7 +80,7 @@ export default function Editor({ document: initialDocument }: EditorProps) {
           const canvas = await html2canvas(editorRef.current, { 
             scale: 2,
             useCORS: true,
-            backgroundColor: window.getComputedStyle(document.documentElement).getPropertyValue('--card').trim() === '0 0% 100%' ? '#FFFFFF' : '#020817'
+            backgroundColor: window.document.documentElement.classList.contains('dark') ? '#020817' : '#FFFFFF',
           });
           const imgData = canvas.toDataURL('image/png');
         
