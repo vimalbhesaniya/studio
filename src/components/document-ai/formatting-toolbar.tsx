@@ -4,22 +4,20 @@ import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function FormattingToolbar() {
-    const handleFormat = (format: string) => {
-        // In a real app, this would use document.execCommand or a library to format selected text.
-        // For now, it's a placeholder.
-        console.log(`Formatting action: ${format}`);
+    const handleFormat = (format: string, value?: string) => {
+        document.execCommand(format, false, value);
     };
 
     const tools = [
-        { id: 'h1', icon: Heading1, tip: 'Heading 1' },
-        { id: 'h2', icon: Heading2, tip: 'Heading 2' },
+        { id: 'heading', icon: Heading1, tip: 'Heading 1', value: '<h1>' },
+        { id: 'heading', icon: Heading2, tip: 'Heading 2', value: '<h2>' },
         { id: 'separator-1' },
         { id: 'bold', icon: Bold, tip: 'Bold' },
         { id: 'italic', icon: Italic, tip: 'Italic' },
         { id: 'separator-2' },
-        { id: 'ul', icon: List, tip: 'Bulleted List' },
-        { id: 'ol', icon: ListOrdered, tip: 'Numbered List' },
-        { id: 'quote', icon: Quote, tip: 'Blockquote' },
+        { id: 'insertUnorderedList', icon: List, tip: 'Bulleted List' },
+        { id: 'insertOrderedList', icon: ListOrdered, tip: 'Numbered List' },
+        { id: 'formatBlock', icon: Quote, tip: 'Blockquote', value: '<blockquote>' },
     ];
 
     return (
@@ -31,9 +29,15 @@ export default function FormattingToolbar() {
                     }
                     const Icon = tool.icon!;
                     return (
-                        <Tooltip key={tool.id}>
+                        <Tooltip key={tool.id + tool.value}>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => handleFormat(tool.id)} aria-label={tool.tip}>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => handleFormat(tool.id, tool.value)} 
+                                  aria-label={tool.tip}
+                                  onMouseDown={(e) => e.preventDefault()}
+                                >
                                     <Icon className="h-4 w-4" />
                                 </Button>
                             </TooltipTrigger>

@@ -54,14 +54,39 @@ export default function Editor({ document }: EditorProps) {
                     break;
                 }
                 case 'PDF': {
-                    const canvas = await html2canvas(editorRef.current);
+                    const canvas = await html2canvas(editorRef.current, {
+                        scale: 2, // Increase scale for better quality
+                    });
                     const imgData = canvas.toDataURL('image/png');
+                    
                     const pdf = new jsPDF({
                         orientation: 'p',
                         unit: 'px',
-                        format: [canvas.width, canvas.height]
+                        format: 'a4', // Use a standard page format
                     });
-                    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    const canvasWidth = canvas.width;
+                    const canvasHeight = canvas.height;
+                    const ratio = canvasWidth / canvasHeight;
+                    
+                    const width = pdfWidth;
+                    const height = width / ratio;
+
+                    let position = 0;
+                    let heightLeft = height;
+
+                    pdf.addImage(imgData, 'PNG', 0, position, width, height);
+                    heightLeft -= pdfHeight;
+
+                    while (heightLeft > 0) {
+                        position = heightLeft - height;
+                        pdf.addPage();
+                        pdf.addImage(imgData, 'PNG', 0, position, width, height);
+                        heightLeft -= pdfHeight;
+                    }
+                    
                     pdf.save(`${title}.pdf`);
                     break;
                 }
@@ -131,6 +156,8 @@ export default function Editor({ document }: EditorProps) {
                         ref={editorRef}
                         className="document-content max-w-none"
                         dangerouslySetInnerHTML={{ __html: document }}
+                        contentEditable={true}
+                        suppressContentEditableWarning={true}
                     />
                 </CardContent>
             </Card>

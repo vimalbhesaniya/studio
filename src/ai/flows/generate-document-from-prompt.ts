@@ -17,7 +17,7 @@ const GenerateDocumentFromPromptInputSchema = z.object({
 export type GenerateDocumentFromPromptInput = z.infer<typeof GenerateDocumentFromPromptInputSchema>;
 
 const GenerateDocumentFromPromptOutputSchema = z.object({
-  document: z.string().describe('The generated document.'),
+  document: z.string().describe('The generated document in HTML format.'),
 });
 export type GenerateDocumentFromPromptOutput = z.infer<typeof GenerateDocumentFromPromptOutputSchema>;
 
@@ -30,6 +30,8 @@ const prompt = ai.definePrompt({
   input: {schema: GenerateDocumentFromPromptInputSchema},
   output: {schema: GenerateDocumentFromPromptOutputSchema},
   prompt: `You are an expert document generator. Your goal is to create well-structured documents based on user prompts.
+  The output should be a valid HTML document. Use appropriate HTML tags for headings, paragraphs, lists, etc.
+  For example, use <h1> for the main title, <h2> for sections, <p> for paragraphs, <ul> or <ol> for lists.
 
   Create a document based on the following prompt: {{{prompt}}}`,
 });
