@@ -119,7 +119,7 @@ export default function FormattingToolbar() {
 
   return (
     <TooltipProvider>
-      <div className="flex items-center gap-1 bg-muted p-1 rounded-md">
+      <div className="flex flex-wrap items-center gap-1 bg-muted p-1 rounded-md">
         {tools.map((tool, index) => {
           if (tool.id.startsWith('separator')) {
             return (
