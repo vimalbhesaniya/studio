@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import TurndownService from 'turndown';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import htmlToDocx from 'html-to-docx';
+import { saveAs } from 'file-saver';
 
 interface EditorProps {
     document: string;
@@ -45,22 +45,12 @@ export default function Editor({ document }: EditorProps) {
                     const turndownService = new TurndownService();
                     const markdown = turndownService.turndown(content);
                     const blob = new Blob([markdown], { type: 'text/markdown' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${title}.md`;
-                    a.click();
-                    URL.revokeObjectURL(url);
+                    saveAs(blob, `${title}.md`);
                     break;
                 }
                 case 'HTML': {
                     const blob = new Blob([content], { type: 'text/html' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${title}.html`;
-                    a.click();
-                    URL.revokeObjectURL(url);
+                    saveAs(blob, `${title}.html`);
                     break;
                 }
                 case 'PDF': {
@@ -76,18 +66,20 @@ export default function Editor({ document }: EditorProps) {
                     break;
                 }
                 case 'DOCX': {
-                    const fileBuffer = await htmlToDocx(content, undefined, {
-                        footer: true,
-                        header: true,
-                        pageNumber: true,
+                    const response = await fetch('/api/export/docx', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ htmlContent: content }),
                     });
-                    const blob = new Blob([fileBuffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${title}.docx`;
-                    a.click();
-                    URL.revokeObjectURL(url);
+
+                    if (!response.ok) {
+                        throw new Error('Failed to generate DOCX file');
+                    }
+
+                    const blob = await response.blob();
+                    saveAs(blob, `${title}.docx`);
                     break;
                 }
             }
