@@ -7,6 +7,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Copy, Download, FileText, FileType, FileDown, FileCode } from 'lucide-react';
 import FormattingToolbar from './formatting-toolbar';
 import { useToast } from '@/hooks/use-toast';
+import TurndownService from 'turndown';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import htmlToDocx from 'html-to-docx';
 
 interface EditorProps {
     document: string;
@@ -29,11 +33,73 @@ export default function Editor({ document }: EditorProps) {
         }
     };
     
-    const handleExport = (format: 'Markdown' | 'HTML' | 'PDF' | 'DOCX') => {
-        toast({
-            title: 'Export not implemented',
-            description: `Exporting to ${format} is not yet available.`,
-        });
+    const handleExport = async (format: 'Markdown' | 'HTML' | 'PDF' | 'DOCX') => {
+        if (!editorRef.current) return;
+
+        const content = editorRef.current.innerHTML;
+        const title = "document";
+
+        try {
+            switch (format) {
+                case 'Markdown': {
+                    const turndownService = new TurndownService();
+                    const markdown = turndownService.turndown(content);
+                    const blob = new Blob([markdown], { type: 'text/markdown' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${title}.md`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    break;
+                }
+                case 'HTML': {
+                    const blob = new Blob([content], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${title}.html`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    break;
+                }
+                case 'PDF': {
+                    const canvas = await html2canvas(editorRef.current);
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new jsPDF({
+                        orientation: 'p',
+                        unit: 'px',
+                        format: [canvas.width, canvas.height]
+                    });
+                    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                    pdf.save(`${title}.pdf`);
+                    break;
+                }
+                case 'DOCX': {
+                    const fileBuffer = await htmlToDocx(content, undefined, {
+                        footer: true,
+                        header: true,
+                        pageNumber: true,
+                    });
+                    const blob = new Blob([fileBuffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${title}.docx`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    break;
+                }
+            }
+            toast({ title: `Exported as ${format}` });
+        } catch (error) {
+            console.error(`Failed to export as ${format}:`, error);
+            toast({
+                title: 'Export Failed',
+                description: `There was an error exporting the document to ${format}.`,
+                variant: 'destructive',
+            });
+        }
     }
 
     return (
