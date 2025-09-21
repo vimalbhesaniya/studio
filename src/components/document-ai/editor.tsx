@@ -154,7 +154,17 @@ export default function Editor({ document: initialDocument }: EditorProps) {
       const reader = new FileReader();
       reader.onload = (e) => {
         const src = e.target?.result as string;
-        document.execCommand('insertImage', false, src);
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          const img = document.createElement('img');
+          img.src = src;
+          img.style.maxWidth = '100%';
+          range.insertNode(img);
+        } else {
+          editorRef.current?.focus();
+          document.execCommand('insertImage', false, src);
+        }
       };
       reader.readAsDataURL(file);
     }
