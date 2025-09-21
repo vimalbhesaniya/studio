@@ -157,13 +157,15 @@ export default function Editor({ document: initialDocument }: EditorProps) {
         const selection = window.getSelection();
         if (selection && selection.rangeCount > 0) {
           const range = selection.getRangeAt(0);
-          const img = document.createElement('img');
+          const img = window.document.createElement('img');
           img.src = src;
           img.style.maxWidth = '100%';
           range.insertNode(img);
-        } else {
-          editorRef.current?.focus();
-          document.execCommand('insertImage', false, src);
+        } else if (editorRef.current) {
+            const img = window.document.createElement('img');
+            img.src = src;
+            img.style.maxWidth = '100%';
+            editorRef.current.appendChild(img);
         }
       };
       reader.readAsDataURL(file);
