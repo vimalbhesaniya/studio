@@ -1,53 +1,156 @@
-import { Bold, Italic, Heading1, Heading2, List, ListOrdered, Quote } from 'lucide-react';
+import {
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  Heading1,
+  Heading2,
+  Heading3,
+  List,
+  ListOrdered,
+  Quote,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export default function FormattingToolbar() {
-    const handleFormat = (format: string, value?: string) => {
-        document.execCommand(format, false, value);
-    };
+  const handleFormat = (command: string, value?: string) => {
+    document.execCommand(command, false, value);
+  };
 
-    const tools = [
-        { id: 'heading', icon: Heading1, tip: 'Heading 1', value: '<h1>' },
-        { id: 'heading', icon: Heading2, tip: 'Heading 2', value: '<h2>' },
-        { id: 'separator-1' },
-        { id: 'bold', icon: Bold, tip: 'Bold' },
-        { id: 'italic', icon: Italic, tip: 'Italic' },
-        { id: 'separator-2' },
-        { id: 'insertUnorderedList', icon: List, tip: 'Bulleted List' },
-        { id: 'insertOrderedList', icon: ListOrdered, tip: 'Numbered List' },
-        { id: 'formatBlock', icon: Quote, tip: 'Blockquote', value: '<blockquote>' },
-    ];
+  const formatBlock = (tag: string) => {
+    document.execCommand('formatBlock', false, tag);
+  };
 
-    return (
-        <TooltipProvider>
-            <div className="flex items-center gap-1">
-                {tools.map(tool => {
-                    if (tool.id.startsWith('separator')) {
-                        return <Separator key={tool.id} orientation="vertical" className="h-6 mx-1" />;
-                    }
-                    const Icon = tool.icon!;
-                    return (
-                        <Tooltip key={tool.id + tool.value}>
-                            <TooltipTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  onClick={() => handleFormat(tool.id, tool.value)} 
-                                  aria-label={tool.tip}
-                                  onMouseDown={(e) => e.preventDefault()}
-                                >
-                                    <Icon className="h-4 w-4" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>{tool.tip}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    );
-                })}
-            </div>
-        </TooltipProvider>
-    );
+  const tools = [
+    { id: 'bold', icon: Bold, tip: 'Bold', action: () => handleFormat('bold') },
+    {
+      id: 'italic',
+      icon: Italic,
+      tip: 'Italic',
+      action: () => handleFormat('italic'),
+    },
+    {
+      id: 'underline',
+      icon: Underline,
+      tip: 'Underline',
+      action: () => handleFormat('underline'),
+    },
+    {
+      id: 'strikethrough',
+      icon: Strikethrough,
+      tip: 'Strikethrough',
+      action: () => handleFormat('strikethrough'),
+    },
+    { id: 'separator-1' },
+    {
+      id: 'h1',
+      icon: Heading1,
+      tip: 'Heading 1',
+      action: () => formatBlock('h1'),
+    },
+    {
+      id: 'h2',
+      icon: Heading2,
+      tip: 'Heading 2',
+      action: () => formatBlock('h2'),
+    },
+    {
+      id: 'h3',
+      icon: Heading3,
+      tip: 'Heading 3',
+      action: () => formatBlock('h3'),
+    },
+    {
+      id: 'blockquote',
+      icon: Quote,
+      tip: 'Blockquote',
+      action: () => formatBlock('blockquote'),
+    },
+    { id: 'separator-2' },
+    {
+      id: 'ul',
+      icon: List,
+      tip: 'Bulleted List',
+      action: () => handleFormat('insertUnorderedList'),
+    },
+    {
+      id: 'ol',
+      icon: ListOrdered,
+      tip: 'Numbered List',
+      action: () => handleFormat('insertOrderedList'),
+    },
+    { id: 'separator-3' },
+    {
+      id: 'alignLeft',
+      icon: AlignLeft,
+      tip: 'Align Left',
+      action: () => handleFormat('justifyLeft'),
+    },
+    {
+      id: 'alignCenter',
+      icon: AlignCenter,
+      tip: 'Align Center',
+      action: () => handleFormat('justifyCenter'),
+    },
+    {
+      id: 'alignRight',
+      icon: AlignRight,
+      tip: 'Align Right',
+      action: () => handleFormat('justifyRight'),
+    },
+    {
+      id: 'alignJustify',
+      icon: AlignJustify,
+      tip: 'Justify',
+      action: () => handleFormat('justifyFull'),
+    },
+  ];
+
+  return (
+    <TooltipProvider>
+      <div className="flex items-center gap-1 bg-muted p-1 rounded-md">
+        {tools.map((tool, index) => {
+          if (tool.id.startsWith('separator')) {
+            return (
+              <Separator
+                key={tool.id}
+                orientation="vertical"
+                className="h-6 mx-1"
+              />
+            );
+          }
+          const Icon = tool.icon!;
+          return (
+            <Tooltip key={tool.id}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={tool.action}
+                  aria-label={tool.tip}
+                  onMouseDown={(e) => e.preventDefault()}
+                >
+                  <Icon className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{tool.tip}</p>
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
+      </div>
+    </TooltipProvider>
+  );
 }
