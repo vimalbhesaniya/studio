@@ -77,45 +77,20 @@ export default function Editor({ document: initialDocument }: EditorProps) {
           break;
         }
         case 'PDF': {
-          const canvas = await html2canvas(editorRef.current, {
+          const canvas = await html2canvas(editorRef.current, { 
             scale: 2,
             useCORS: true,
-            backgroundColor:
-              window.getComputedStyle(editorRef.current).backgroundColor === 'rgb(255, 255, 255)' ||
-              window.getComputedStyle(editorRef.current).backgroundColor === '#ffffff'
-                ? '#ffffff'
-                : '#0f172a',
+            backgroundColor: window.getComputedStyle(document.documentElement).getPropertyValue('--card').trim() === '0 0% 100%' ? '#FFFFFF' : '#020817'
           });
           const imgData = canvas.toDataURL('image/png');
-
+        
           const pdf = new jsPDF({
             orientation: 'p',
             unit: 'px',
-            format: 'a4',
+            format: [canvas.width, canvas.height],
           });
-
-          const pdfWidth = pdf.internal.pageSize.getWidth();
-          const pdfHeight = pdf.internal.pageSize.getHeight();
-          const canvasWidth = canvas.width;
-          const canvasHeight = canvas.height;
-          const ratio = canvasWidth / canvasHeight;
-
-          const width = pdfWidth;
-          const height = width / ratio;
-
-          let position = 0;
-          let heightLeft = height;
-
-          pdf.addImage(imgData, 'PNG', 0, position, width, height);
-          heightLeft -= pdfHeight;
-
-          while (heightLeft > 0) {
-            position = heightLeft - height;
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, width, height);
-            heightLeft -= pdfHeight;
-          }
-
+        
+          pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
           pdf.save(`${title}.pdf`);
           break;
         }
